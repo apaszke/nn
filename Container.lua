@@ -20,6 +20,31 @@ function Container:size()
     return #self.modules
 end
 
+-- module argument can be retrieved with moduleIndex, but code is cleaner when
+-- it has to be specified anyway
+function Container:rethrowErrors(module, moduleIndex, funcName, ...)
+    local function handleError(err)
+       if torch.type(err) == "string" then
+          local traceback = debug.traceback()
+          -- pop this handler off the stack
+          local _, first_line_len = traceback:find('^.-\n')
+          local _, second_line_end = traceback:find('^.-\n.-\n')
+          traceback = traceback:sub(1, first_line_len) .. traceback:sub(second_line_end+1)
+          err = nn.Error(err, traceback)
+       end
+       err:pushModule(self, moduleIndex)
+       return err
+    end
+
+    assert(module == self.modules[moduleIndex], "mismatch between moduleIndex and self.modules in rethrowErrors")
+    local ok, ret, noret = xpcall(module[funcName], handleError, module, ...)
+    assert(noret == nil, "rethrowErrors supports only one return argument")
+    if not ok then
+       error(ret)
+    end
+    return ret
+end
+
 function Container:applyToModules(func)
     for _, module in ipairs(self.modules) do
         func(module)
