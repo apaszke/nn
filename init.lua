@@ -7,6 +7,7 @@ require('nn.THNN')
 require('nn.utils')
 
 
+require('nn.Error')
 require('nn.ErrorMessages')
 require('nn.Module')
 

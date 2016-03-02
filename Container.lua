@@ -20,6 +20,22 @@ function Container:size()
     return #self.modules
 end
 
+-- module argument can be retrieved with moduleIndex, but code is cleaner when
+-- it has to be specified anyway
+function Container:callAndRethrow(module, moduleIndex, funcName, ...)
+    assert(module == self.modules[moduleIndex], "mismatch between moduleIndex and self.modules in callAndRethrow")
+    local ok, ret, noret = pcall(module[funcName], module, ...)
+    assert(noret == nil, "callAndRethrow supports only one return argument")
+    if not ok then
+       if torch.type(ret) == "string" then
+          ret = nn.Error(ret)
+       end
+       ret:pushModule(self, moduleIndex)
+       error(ret)
+    end
+    return ret
+end
+
 function Container:applyToModules(func)
     for _, module in ipairs(self.modules) do
         func(module)
