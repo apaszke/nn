@@ -1,11 +1,13 @@
 local PReLU, parent = torch.class('nn.PReLU','nn.Module')
 
-function PReLU:__init(nOutputPlane)
+function PReLU:__init(nOutputPlane, inplace)
    parent.__init(self)
    -- if no argument provided, use shared model (weight is scalar)
    self.nOutputPlane = nOutputPlane or 0
    self.weight = torch.Tensor(nOutputPlane or 1):fill(0.25)
    self.gradWeight = torch.Tensor(nOutputPlane or 1)
+   assert(inplace == nil or type(inplace) == 'boolean')
+   self.inplace = inplace or false
 end
 
 function PReLU:updateOutput(input)
@@ -13,7 +15,8 @@ function PReLU:updateOutput(input)
       input:cdata(),
       self.output:cdata(),
       self.weight:cdata(),
-      self.nOutputPlane
+      self.nOutputPlane,
+      self.inplace
    )
    return self.output
 end
@@ -24,7 +27,8 @@ function PReLU:updateGradInput(input, gradOutput)
       gradOutput:cdata(),
       self.gradInput:cdata(),
       self.weight:cdata(),
-      self.nOutputPlane
+      self.nOutputPlane,
+      self.inplace
    )
    return self.gradInput
 end
@@ -41,7 +45,8 @@ function PReLU:accGradParameters(input, gradOutput, scale)
       self.gradWeightBuf:cdata(),
       self.gradWeightBuf2:cdata(),
       self.nOutputPlane,
-      scale or 1
+      scale or 1,
+      self.inplace
    )
    return self.gradWeight
 end

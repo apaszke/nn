@@ -273,6 +273,8 @@ has only one parameter. Otherwise if called ```nn.PReLU(nOutputPlane)``` has ```
 parameters, one for each input map. The output dimension is always equal to input dimension.
 Note that weight decay should not be used on it. For reference see [Delving Deep into Rectifiers](http://arxiv.org/abs/1502.01852).
 
+If second argument to `PReLU`s constructor is `true` the module will operate in place.
+
 ![](image/prelu.png)
 
 <a name="nn.RReLU"></a>
